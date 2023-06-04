@@ -44,7 +44,7 @@ npm install
 
 9. Access the DApp:
 
-Open your web browser and visit `http://localhost:5173/` to access the voting DApp.
+> Open your web browser and visit `http://localhost:5173/` to access the voting DApp.
 
 ## Dependencies
 
@@ -62,5 +62,5 @@ Contributions are welcome! If you encounter any issues or have suggestions for i
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [No License](LICENSE).
 
