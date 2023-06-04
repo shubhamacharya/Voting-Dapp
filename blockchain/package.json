@@ -1,0 +1,33 @@
+{
+  "name": "voting",
+  "version": "1.0.0",
+  "description": "Decentralised voting system on ethereum blockchain.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "voting",
+    "decentralised",
+    "voting",
+    "ERC-20",
+    "ERC-721",
+    "ERC-1155",
+    "solidity",
+    "mern",
+    "ethereum"
+  ],
+  "author": "Shubham Acharya",
+  "license": "ISC",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^2.0.2",
+    "hardhat": "^2.14.0"
+  },
+  "dependencies": {
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@nomiclabs/hardhat-waffle": "^2.0.6",
+    "@openzeppelin/contracts": "^4.8.3",
+    "chai": "^4.3.7"
+  }
+}
