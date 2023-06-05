@@ -83,3 +83,11 @@
 .cardCust{
   width: 25rem;
 }
+
+.electionTable{
+  border: 1px rigid black;
+}
+
+.fwGovb{
+  font-size: 15px;
+}

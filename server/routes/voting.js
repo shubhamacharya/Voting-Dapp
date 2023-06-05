@@ -20,7 +20,7 @@ routes.post('/createElection', async(req, res) => {
         await votingContract.methods.initiatedNewVoting(votingId, description).send({
             from: adminAddress
         }).on('error', (error, receipt) => {
-            console.log(error.reason);
+            console.log('Error receipt ==> ',error.reason);
             res.json({"error": error.reason});
         }).on('receipt', async (tx) => {
             if(tx.status == 1){
@@ -47,83 +47,57 @@ routes.post('/createElection', async(req, res) => {
 });
 
 routes.post('/registerCandidate', async(req, res) => {
-    const votingContract = await getContractObj();
-    
-    let tnx = req.body.candidates.map(async (candidate, index) => {
-        const { name, email, candidateAddress, votingId } = candidate;
-        if( name != undefined && 
-            email != undefined && 
-            candidateAddress != undefined && 
-            votingId != undefined
-        )
-        {
-            const dbCandidate = new Candidates();
-            const electionObj = await  Elections.findOne({votingId:votingId});
-
-            let tx = await votingContract.methods.registerCandidate(name, email, candidateAddress, votingId).send({
-                from: req.body.adminAddress,
-                nonuce: index,
-                gas: 29999999,
-            }).on('error', (error, receipt) => {
-                res.json({"error": error.reason});
-            })
-            
-            dbCandidate.candidateAddress = candidateAddress;
-            dbCandidate.name = name;
-            dbCandidate.email = email;
-            electionObj.candidates.push(await dbCandidate.save());
-            await electionObj.save();
-            return tx.transactionHash;
-        }
-        else{
-            res.json({"error": 'Fill out all the fields.'});
-        }
-    });
-    res.json({"transactionHash": await Promise.all(tnx)});
-});
-
-/* routes.post('/disableVoting', async(req, res) => {
     try{
-        const {votingId, adminAddress} = req.body;
-        const electionObj = await  Elections.findOne({votingId:votingId});
+        const votingContract = await getContractObj();
+        
+        let tnx = req.body.candidates.map(async (candidate, index) => {
+            const { name, email, candidateAddress, votingId } = candidate;
+            if( name != undefined && 
+                email != undefined && 
+                candidateAddress != undefined && 
+                votingId != undefined
+            )
+            {
+                const dbCandidate = new Candidates();
+                const electionObj = await  Elections.findOne({votingId:votingId});
 
-        const votingContract = await getContractObj(adminAddress);
-        let tx = await votingContract.methods.disableVoting(votingId).send({
-            from: adminAddress
+                votingContract.methods.registerCandidate(name, email, candidateAddress, votingId).send({
+                    from: req.body.adminAddress,
+                    nonuce: index,
+                    gas: 29999999,
+                }).on('error', (error, receipt) => {
+                    res.json({"error": error.reason});
+                }).then(async(tx) => {
+                    dbCandidate.candidateAddress = candidateAddress;
+                    dbCandidate.name = name;
+                    dbCandidate.email = email;
+                    electionObj.candidates.push(await dbCandidate.save());
+                    await electionObj.save();
+                    return tx.transactionHash;
+                });
+            }
+            else{
+                res.json({"error": 'Fill out all the fields.'});
+            }
         });
-        electionObj.stage = tx.events.VotingDisabled.returnValues.stage;
-        await electionObj.save();
-
-        res.json({"success": 'Voting for Election with Id '+votingId+' is disabled'});
-    }catch(exceptionObj){
-        res.json({"error": exceptionObj.message})
+        res.json({"transactionHash": await Promise.all(tnx)});
+    }
+    catch(error) 
+    {
+        if(error.code == 11000){
+            res.json({"error":'Candidate with Email Id '+email+' already exists'});
+        }
+       else{
+        res.json({"error":error.reason});
+       }
     }
 });
-
-routes.post('/enableVoting', async(req, res) => {
-    try{
-        const {votingId, adminAddress} = req.body;
-        const electionObj = await  Elections.findOne({votingId:votingId});
-
-        const votingContract = await getContractObj(adminAddress);
-        let tx = await votingContract.methods.enableVoting(votingId).send({
-            from: adminAddress
-        });
-
-        electionObj.stage = tx.events.VotingEnabled.returnValues.stage;
-        await electionObj.save();
-
-        res.json({"success": 'Voting for Election with Id '+votingId+' is enabled'});
-    }catch(exceptionObj){
-        res.json({"error": exceptionObj.message})
-    }
-}); */
 
 routes.post('/requestVotingTokens',async (req,res) => {
     try {
         const {emailId,signer,votingId} = req.body;
         const votingContract = await getContractObj(signer);
-        await votingContract.methods.requestVotingToken(emailId,signer,votingId).send({
+        votingContract.methods.requestVotingToken(emailId,signer,votingId).send({
             from: signer,
             gas: 29999999,
         }).on('error', (error, receipt) => {
@@ -138,7 +112,7 @@ routes.post('/requestVotingTokens',async (req,res) => {
             dbVoters.votingId.push(votingId);
             await dbVoters.save();
 
-            res.json({"transactionHash":tx});
+            res.json({"transactionHash":tx.transactionHash});
         });
     } catch (error) {
         res.json({"error": error});
@@ -228,11 +202,12 @@ routes.post('/changeVotingStage', async (req, res) => {
 
     const result = tx.events.VotingStageChange.returnValues;
 
+    const Stage = ['Declared','Active','Closed','Results'];
     let dbElection = await Elections.findOne({votingId: result.votingId});
     dbElection.stage = result.stage;
     await dbElection.save();
 
-    res.json({"message": "Stage changed to "+result.stage+" for electionId "+result.votingId});
+    res.json({"message": "Stage changed to "+Stage[result.stage]+" for electionId "+result.votingId});
 });
 
 routes.get('/votesOfCandidate', async (req, res) => {
@@ -248,9 +223,17 @@ routes.get('/votesOfCandidate', async (req, res) => {
 });
 
 routes.get('/votesOfAllCandidates', async (req, res) => {
-    let {candidateAddresses, votingId, sender} = req.query;
+    let {votingId, sender} = req.query;
     const votingContract = await getContractObj();
-    candidateAddresses = candidateAddresses.split(',');
+
+    let resp = await (
+        await fetch(`http://localhost:3000/voting/getCandidates?votingId=${votingId}`)
+    ).json();
+    
+    let candidateAddresses = resp['candidates'].map(candidate => {
+        return candidate.candidateAddress;
+    });
+    
     let votingIds = [];
 
     let tokenId = await votingContract.methods.getVotingTokenId(votingId).call({
@@ -319,5 +302,10 @@ routes.get('/getCandidates', async (req, res) => {
     }
 });
 
+routes.get('/getElectionStage', async (req, res) => {
+    const {votingId} = req.query
+    let stage = await Elections.findOne().where({ votingId:votingId }).select('stage');
+    res.json({"stage":stage});
+});
 
 module.exports = routes;

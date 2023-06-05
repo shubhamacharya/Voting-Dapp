@@ -54,7 +54,8 @@ function RegisterCandidate() {
         Swal.fire({
           position: 'top-end',
           icon: 'success',
-          title: result.data.transactionHash,
+          title: 'Candidates Registered Successfully.',
+          html: `<h5>Transaction Hash : <strong>${result.data.transactionHash}</strong></h5>`,
           showConfirmButton: false,
           timer: 2000
         });

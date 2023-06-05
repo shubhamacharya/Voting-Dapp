@@ -43,15 +43,16 @@ function ElectionStage() {
             icon: 'error',
             title: result.data.error,
             showConfirmButton: false,
-            timer: 1500
+            timer: 2500
           })
         }else{
           Swal.fire({
             position: 'top-end',
             icon: 'success',
-            title: result.data.message,
+            title: 'Election Status Changed',
+            text: `${result.data.message}`,
             showConfirmButton: false,
-            timer: 1500
+            timer: 2500
           })
         }
     }).catch(e => {
@@ -60,7 +61,7 @@ function ElectionStage() {
         icon: 'error',
         title: e.message,
         showConfirmButton: false,
-        timer: 1500
+        timer: 2500
       })
     })
   }

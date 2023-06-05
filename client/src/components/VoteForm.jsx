@@ -7,6 +7,7 @@ import Swal from 'sweetalert2';
 function VoteForm({show, onHide, votingRow}) {
     const [candidates, setCandidates] = useState([]);
     const [selectedCandidate, setSelectedCandidate] = useState('');
+    
     const castVote = (e) => {
         e.preventDefault();
         axios({
@@ -31,7 +32,8 @@ function VoteForm({show, onHide, votingRow}) {
               Swal.fire({
                 position: 'top-end',
                 icon: 'success',
-                title: result.data.message,
+                title: 'Vote Casted Successfully',
+                html: `${result.data.message}`,
                 showConfirmButton: false,
                 timer: 1500
               });

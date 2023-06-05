@@ -48,7 +48,7 @@ contract Voting is ERC1155, ERC1155Supply, Ownable, ERC1155Burnable {
         emit NewElectionCreate(_votingId, _tokenId, _description);
     }
 
-    function registerCandidate(string memory _name, string memory _emailId, address _candidateAddress, uint256 _votingId) public {
+    function registerCandidate(string memory _name, string memory _emailId, address _candidateAddress, uint256 _votingId) public onlyOwner {
         require(_candidateAddress != address(0), 'address zero is not allowed');
         require(votingDetails[_votingId].stage == electionStage.Declared,"Election not in declared stage.");
         votingDetails[_votingId].candidates.push(_candidateAddress);
